@@ -32,20 +32,24 @@ export function Connect() {
     const [account, setAccount] = useState('');
 
     useLayoutEffect(() => {
-        setAccount(ethereum.selectedAddress);
-        ethereum.on('accountsChanged', e => {
+        if (ethereum) {
             setAccount(ethereum.selectedAddress);
-        });
+            ethereum.on('accountsChanged', e => {
+                setAccount(ethereum.selectedAddress);
+            });
+        }
     }, []);
 
     return(
         <ConnectStyles
             onClick={async e => {
-                try {
-                    await ethereum.request({ method: 'eth_requestAccounts' });
-                    setAccount(ethereum.selectedAddress);
-                } catch (error) {
-                    console.error(error);
+                if (ethereum) {
+                    try {
+                        await ethereum.request({ method: 'eth_requestAccounts' });
+                        setAccount(ethereum.selectedAddress);
+                    } catch (error) {
+                        console.error(error);
+                    }
                 }
             }}
         >
