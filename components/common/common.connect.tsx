@@ -26,26 +26,31 @@ export const ConnectStyles = styled.a`
     }
 `;
 
+declare const window;
 declare const ethereum;
 
 export function Connect() {
     const [account, setAccount] = useState('');
 
     useLayoutEffect(() => {
-        setAccount(ethereum.selectedAddress);
-        ethereum.on('accountsChanged', e => {
-            setAccount(ethereum.selectedAddress);
-        });
+        if (typeof ethereum !== undefined) {
+            setAccount(window.ethereum?.selectedAddress);
+            window.ethereum?.on('accountsChanged', e => {
+                setAccount(ethereum?.selectedAddress);
+            });
+        }
     }, []);
 
     return(
         <ConnectStyles
             onClick={async e => {
-                try {
-                    await ethereum.request({ method: 'eth_requestAccounts' });
-                    setAccount(ethereum.selectedAddress);
-                } catch (error) {
-                    console.error(error);
+                if (typeof ethereum !== undefined) {
+                    try {
+                        await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        setAccount(window.ethereum.selectedAddress);
+                    } catch (error) {
+                        console.error(error);
+                    }
                 }
             }}
         >
