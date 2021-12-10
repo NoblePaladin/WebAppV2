@@ -26,16 +26,17 @@ export const ConnectStyles = styled.a`
     }
 `;
 
+declare const window;
 declare const ethereum;
 
 export function Connect() {
     const [account, setAccount] = useState('');
 
     useLayoutEffect(() => {
-        if (ethereum) {
-            setAccount(ethereum.selectedAddress);
-            ethereum.on('accountsChanged', e => {
-                setAccount(ethereum.selectedAddress);
+        if (typeof ethereum !== undefined) {
+            setAccount(window.ethereum?.selectedAddress);
+            window.ethereum?.on('accountsChanged', e => {
+                setAccount(ethereum?.selectedAddress);
             });
         }
     }, []);
@@ -43,10 +44,10 @@ export function Connect() {
     return(
         <ConnectStyles
             onClick={async e => {
-                if (ethereum) {
+                if (typeof ethereum !== undefined) {
                     try {
-                        await ethereum.request({ method: 'eth_requestAccounts' });
-                        setAccount(ethereum.selectedAddress);
+                        await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        setAccount(window.ethereum.selectedAddress);
                     } catch (error) {
                         console.error(error);
                     }
