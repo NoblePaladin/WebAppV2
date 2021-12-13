@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { Primary, Card, FontDark } from "../common/common.layout";
+import { ConfigureMockDAIContract, ConfigureMockUSDCContract, ConfigureMockUSDTContract } from '../../web3/web3.contracts';
 
 export const FaucetTokensStyles = styled.div`
     display: flex;
@@ -29,6 +30,12 @@ export const FaucetTokensStyles = styled.div`
             pointer-events: none;
         }
 
+        img, svg {
+            display: block;
+            height: 42px;
+            margin: 15px auto;
+        }
+
         h3 {
             text-align: center;
         }
@@ -55,24 +62,56 @@ export const FaucetTokensStyles = styled.div`
     }
 `;
 
+declare const web3, ethereum;
+
 export function FaucetTokens() {
     return(
         <FaucetTokensStyles>
             <div className="card">
-                <h3>Get 1000 ETNA Test DAI</h3>
-                <a className="button">
+                <img src="/image/currency/dai.svg"/>
+                <h3>Get 1000 Test DAI</h3>
+                <a
+                    className="button"
+                    onClick={async e => {
+                        const contract = ConfigureMockDAIContract(web3.currentProvider);
+
+                        await contract.methods.faucet(ethereum.selectedAddress).send({
+                            from: ethereum.selectedAddress,
+                        })
+                    }}
+                >
                     Receive 1000 DAI
                 </a>
             </div>
             <div className="card">
-                <h3>Get 1000 ETNA Test USDC</h3>
-                <a className="button">
+                <img src="/image/currency/usdc.svg"/>
+                <h3>Get 1000 Test USDC</h3>
+                <a
+                    className="button"
+                    onClick={async e => {
+                        const contract = ConfigureMockUSDCContract(web3.currentProvider);
+
+                        await contract.methods.faucet(ethereum.selectedAddress).send({
+                            from: ethereum.selectedAddress,
+                        })
+                    }}
+                >
                     Receive 1000 USDC
                 </a>
             </div>
             <div className="card large">
-                <h3>Get 1000 ETNA Test USDT</h3>
-                <a className="button">
+                <img src="/image/currency/usdt.svg"/>
+                <h3>Get 1000 Test USDT</h3>
+                <a
+                    className="button"
+                    onClick={async e => {
+                        const contract = ConfigureMockUSDTContract(web3.currentProvider);
+
+                        await contract.methods.faucet(ethereum.selectedAddress).send({
+                            from: ethereum.selectedAddress,
+                        })
+                    }}
+                >
                     Receive 1000 USDT
                 </a>
             </div>

@@ -224,9 +224,23 @@ export const BondPopupStyles = styled.div`
 export interface BondPopupI {
     selectedBond: string;
     selectBond(payload: string): void;
+
+    DAI: string;
+    USDC: string;
+    USDT: string;
+    ETNA: string;
+    SETNA: string;
 }
 
-export function _BondPopup({ selectedBond, selectBond }: BondPopupI) {
+export function _BondPopup({ selectedBond, selectBond, DAI, USDC, USDT, ETNA, SETNA }: BondPopupI) {
+    function getBalance() {
+        if (selectedBond.toUpperCase() === 'DAI') { return DAI; }
+        if (selectedBond.toUpperCase() === 'USDC') { return USDC; }
+        if (selectedBond.toUpperCase() === 'USDT') { return USDT; }
+
+        return '~';
+    }
+
     return(
         <BondPopupStyles className={selectedBond ? 'active' : ''}>
             <div className="backdrop"/>
@@ -288,7 +302,7 @@ export function _BondPopup({ selectedBond, selectBond }: BondPopupI) {
 
                     <div className="info-row">
                         <p>Your Balance</p>
-                        <p>0.0 DAI</p>
+                        <p>{getBalance()} {selectedBond}</p>
                     </div>
                     <div className="info-row">
                         <p>You Will Get</p>
@@ -317,7 +331,12 @@ export function _BondPopup({ selectedBond, selectBond }: BondPopupI) {
 }
 
 export const BondPopupState = state => ({
-    selectedBond: state.bond.selectedBond
+    selectedBond: state.bond.selectedBond,
+    DAI: state.balance.DAI,
+    USDC: state.balance.USDC,
+    USDT: state.balance.USDT,
+    ETNA: state.balance.ETNA,
+    SETNA: state.balance.SETNA
 });
 
 export const BondPopup = connect(BondPopupState, { selectBond })(_BondPopup)
