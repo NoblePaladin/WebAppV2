@@ -1,49 +1,38 @@
-import Web3 from 'web3';
 import { useRouter } from 'next/router';
 import { useLayoutEffect } from "react";
 import { connect } from "react-redux";
-import { ConfigureMockDAIContract, ConfigureMockUSDCContract, ConfigureMockUSDTContract } from '../../web3/web3.contracts';
-import { selectBond } from '../../redux/redux.bond';
-import { setBalance } from '../../redux/redux.balance';
+
+import { retrieveBondInfo } from '../../web3/web3.bonds';
+import { selectBond, setTerms, TermsI } from '../../redux/redux.bond';
 import Bonds from '../bonds';
 
 export interface BondIDI {
     selectedBond: string;
     selectBond(payload: string): void;
-    setBalance({ currency, value }: { currency: string, value: string }): void;
+    setTerms(payload: TermsI): void;
 }
 
 declare const web3, ethereum;
 
-export function _BondID({ selectedBond, selectBond, setBalance }: BondIDI) {
+export function _BondID({ selectedBond, selectBond, setTerms }: BondIDI) {
     const router = useRouter();
     const { id } = router.query;
 
     useLayoutEffect(() => {
         selectBond((id as string).toUpperCase());
-
         (async () => {
-            const _web3 = new Web3(web3.currentProvider);
-
-            if ((id as string).toUpperCase() === 'DAI') {
-                const contract = ConfigureMockDAIContract(web3.currentProvider);
-                const balance = await contract.methods.balanceOf(ethereum.selectedAddress).call();
-                const balanceFormatted = _web3.utils.fromWei(balance);
-                setBalance({ currency: 'DAI', value: balanceFormatted.toString() });
-            }
-
-            if ((id as string).toUpperCase() === 'USDC') {
-                const contract = ConfigureMockUSDCContract(web3.currentProvider);
-                const balance = await contract.methods.balanceOf(ethereum.selectedAddress).call();
-                const balanceFormatted = _web3.utils.fromWei(balance);
-                setBalance({ currency: 'USDC', value: balanceFormatted.toString() });
-            }
-
-            if ((id as string).toUpperCase() === 'USDT') {
-                const contract = ConfigureMockUSDTContract(web3.currentProvider);
-                const balance = await contract.methods.balanceOf(ethereum.selectedAddress).call();
-                const balanceFormatted = _web3.utils.fromWei(balance);
-                setBalance({ currency: 'USDT', value: balanceFormatted.toString() });
+            if (typeof web3 !== 'undefined') {
+                let index = -1;
+    
+                if ((id as string).toUpperCase() === 'DAI') { index = 0; }
+                if ((id as string).toUpperCase() === 'USDC') { index = 1; }
+                if ((id as string).toUpperCase() === 'USDT') { index = 2; }
+    
+                if (index > -1) {
+                    const bondInfo: TermsI = await retrieveBondInfo(web3.currentProvider);
+                    console.log('Bond Info', bondInfo);
+                    setTerms(bondInfo);
+                }
             }
         })();
     }, [id]);
@@ -55,4 +44,4 @@ export const BondIDState = state => ({
     selectedBond: state.bond.selectedBond
 })
 
-export default connect(BondIDState, { selectBond, setBalance })(_BondID);
+export default connect(BondIDState, { selectBond, setTerms })(_BondID);
