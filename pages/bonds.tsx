@@ -5,18 +5,21 @@ import { Sidebar } from "../components/common/common.sidebar";
 import { Connect } from '../components/common/common.connect';
 import { BondsCard } from '../components/bonds/bonds.card';
 import { BondPopup } from '../components/bonds/bond.popup';
-import { selectBond } from '../redux/redux.bond';
+import { selectBond, setTerms, setTreasuryBalance, TermsI } from '../redux/redux.bond';
 import { setBalance } from '../redux/redux.balance';
+import { retrieveBondInfo, retrieveTreasuryBalance } from '../web3/web3.bonds';
 import { retrieveTokenBalances } from '../web3/web3.tokens';
 
 export interface BondI {
     selectBond(payload: string): void;
     setBalance({ currency, value }: { currency: string, value: string }): void;
+    setTerms(payload: {key: number, value: TermsI}): void;
+    setTreasuryBalance(payload: number): void;
 }
 
 declare const web3, ethereum;
 
-export function _Bonds({ selectBond, setBalance }: BondI) {
+export function _Bonds({ selectBond, setBalance, setTerms, setTreasuryBalance }: BondI) {
     useLayoutEffect(() => {
         selectBond('');
 
@@ -26,6 +29,14 @@ export function _Bonds({ selectBond, setBalance }: BondI) {
                 setBalance({ currency: 'DAI', value: DAI });
                 setBalance({ currency: 'USDC', value: USDC });
                 setBalance({ currency: 'USDT', value: USDT });
+
+                const reserves = await retrieveTreasuryBalance(web3.currentProvider);
+                setTreasuryBalance(reserves);
+
+                for (let i = 0; i < 3; i++) {
+                    const bondInfo: TermsI = await retrieveBondInfo(web3.currentProvider, i);
+                    setTerms({ key: i, value: bondInfo});
+                }
             }
         })();
     }, []);
@@ -46,4 +57,4 @@ export const BondsState = state => ({
 
 });
 
-export default connect(BondsState, { selectBond, setBalance })(_Bonds);
+export default connect(BondsState, { selectBond, setBalance, setTerms, setTreasuryBalance })(_Bonds);

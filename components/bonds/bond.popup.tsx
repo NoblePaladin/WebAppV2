@@ -20,25 +20,38 @@ export interface BondPopupI {
     ETNA: string;
     SETNA: string;
 
-    terms: TermsI;
+    terms: {
+        0: TermsI;
+        1: TermsI;
+        2: TermsI;
+    };
 }
 
 declare const web3, ethereum;
 
 export function _BondPopup({ selectedBond, inputAmount, selectBond, setInputAmount, DAI, USDC, USDT, ETNA, SETNA, terms }: BondPopupI) {
+    let termIndex = -1;
+
+    if (selectedBond.toUpperCase() === 'DAI') { termIndex = 0; }
+    if (selectedBond.toUpperCase() === 'USDC') { termIndex = 1; }
+    if (selectedBond.toUpperCase() === 'USDT') { termIndex = 2; }
+
     function calculatePayout() {
         if (inputAmount) {
-            return (Number(inputAmount) / Number(terms.price));
+            return (Number(inputAmount) / Number(terms[termIndex]?.price));
         } else {
             return '0';
         }
+    }
+
+    function calculateAvailable() {
+        return ((terms[termIndex]?.available || 1) / Math.pow(10, 18)).toLocaleString(undefined, { minimumFractionDigits: 2 }); 
     }
 
     function getBalance() {
         if (selectedBond.toUpperCase() === 'DAI') { return DAI; }
         if (selectedBond.toUpperCase() === 'USDC') { return USDC; }
         if (selectedBond.toUpperCase() === 'USDT') { return USDT; }
-
         return '0';
     }
 
@@ -72,21 +85,12 @@ export function _BondPopup({ selectedBond, inputAmount, selectBond, setInputAmou
                     <div className="card-subheading">
                         <div className="sub-heading-column">
                             <h3>Bond Price</h3>
-                            <p>${terms.price}</p>
+                            <p>${terms[termIndex]?.price}</p>
                         </div>
                         <div className="sub-heading-column">
                             <h3>ETNA Price</h3>
-                            <p>$~</p>
+                            <p>$N/A</p>
                         </div>
-                    </div>
-
-                    <div className="toggle-heading">
-                        <a className="toggle-button active">
-                            Bond
-                        </a>
-                        <a className="toggle-button">
-                            Redeem
-                        </a>
                     </div>
 
                     <div className="input-outer">
@@ -154,19 +158,19 @@ export function _BondPopup({ selectedBond, inputAmount, selectBond, setInputAmou
                     </div>
                     <div className="info-row">
                         <p>Max You Can Buy</p>
-                        <p>{Number(terms.maxPayout).toLocaleString(undefined, { minimumFractionDigits: 2 })} ETNA</p>
+                        <p>{calculateAvailable()} DAI</p>
                     </div>
                     <div className="info-row">
                         <p>ROI</p>
-                        <p>150%</p>
+                        <p>N/A%</p>
                     </div>
                     <div className="info-row">
                         <p>Debt Ratio</p>
-                        <p>{terms.debtRatio}%</p>
+                        <p>{terms[termIndex]?.debtRatio}%</p>
                     </div>
                     <div className="info-row">
                         <p>Vesting Term</p>
-                        <p>{terms.vestingTerm} Days</p>
+                        <p>{terms[termIndex]?.vestingTerm} Days</p>
                     </div>
                 </div>
             </div>
@@ -185,10 +189,30 @@ export const BondPopupState = state => ({
     SETNA: state.balance.SETNA,
 
     terms: {
-        price: state.bond.terms.price,
-        maxPayout: state.bond.terms.maxPayout,
-        debtRatio: state.bond.terms.debtRatio,
-        vestingTerm: state.bond.terms.vestingTerm,
+        0: {
+            price: state.bond.terms[0].price,
+            maxPayout: state.bond.terms[0].maxPayout,
+            debtRatio: state.bond.terms[0].debtRatio,
+            vestingTerm: state.bond.terms[0].vestingTerm,
+            purchased: state.bond.terms[0].purchased,
+            available: state.bond.terms[0].available,
+        },
+        1: {
+            price: state.bond.terms[1].price,
+            maxPayout: state.bond.terms[1].maxPayout,
+            debtRatio: state.bond.terms[1].debtRatio,
+            vestingTerm: state.bond.terms[1].vestingTerm,
+            purchased: state.bond.terms[1].purchased,
+            available: state.bond.terms[1].available,
+        },
+        2: {
+            price: state.bond.terms[2].price,
+            maxPayout: state.bond.terms[2].maxPayout,
+            debtRatio: state.bond.terms[2].debtRatio,
+            vestingTerm: state.bond.terms[2].vestingTerm,
+            purchased: state.bond.terms[2].purchased,
+            available: state.bond.terms[2].available,
+        },
     },
 });
 
