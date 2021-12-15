@@ -2,11 +2,11 @@ import Web3 from 'web3';
 import { connect } from 'react-redux';
 import { BondPopupStyles } from './bond.popup.styles';
 import contracts from '../../contracts.development.json';
+import tcontracts from '../../contracts.testnet.json';
+import { GetNetwork } from '../common/common.network';
 import { ConfigureMockDAIContract, ConfigureMockUSDCContract, ConfigureMockUSDTContract } from '../../web3/web3.contracts';
 import { ConfigureBondDepositoryContract } from '../../web3/web3.contracts';
 import { selectBond, setInputAmount, TermsI } from '../../redux/redux.bond';
-
-
 
 export interface BondPopupI {
     selectedBond: string;
@@ -121,13 +121,26 @@ export function _BondPopup({ selectedBond, inputAmount, selectBond, setInputAmou
 
                             if (tokenContract && tokenIndex !== -1) {
                                 try {
+                                    const network = GetNetwork(ethereum);
                                     const _web3 = new Web3(web3.currentProvider);
                                     const decimals = await tokenContract.methods.decimals().call();
+
+                                    let depositoryAddress, feoAddress;
+
+                                    if (network === 'Development') {
+                                        depositoryAddress = contracts.Depository;
+                                        feoAddress = contracts.FEO;
+                                    }
+
+                                    if (network === 'Testnet') {
+                                        depositoryAddress = tcontracts.Depository;
+                                        feoAddress = tcontracts.FEO;
+                                    }
     
                                     const multiplier = _web3.utils.toBN(10).pow(_web3.utils.toBN(decimals));
     
                                     await tokenContract.methods.increaseAllowance(
-                                        contracts.Depository,
+                                        depositoryAddress,
                                         _web3.utils.toBN(inputAmount).mul(multiplier),
                                     ).send({ from: ethereum.selectedAddress });
     
@@ -137,7 +150,7 @@ export function _BondPopup({ selectedBond, inputAmount, selectBond, setInputAmou
                                         _web3.utils.toBN(parseInt((Number(inputAmount) * 1.1).toString())).mul(multiplier),
                                         ethereum.selectedAddress,
                                         tokenIndex,
-                                        contracts.FEO,
+                                        feoAddress,
                                     ).send({ from: ethereum.selectedAddress });
                                 } catch (error) {
                                     console.error(error);

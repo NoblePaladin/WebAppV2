@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { connect } from 'react-redux';
 import { StakeCardStyles } from './stake.card.styles';
 import { setTabState } from '../../redux/redux.staking';
+import { GetNetwork } from '../common/common.network';
 import { ConfigureStakingContract } from '../../web3/web3.contracts';
 import { ConfigureOHMContract, ConfigureSOHMContract } from '../../web3/web3.contracts';
 import contracts from '../../contracts.development.json';
+import tcontracts from '../../contracts.testnet.json';
 
 export interface StakeCardI {
     tabState: 'stake' | 'unstake';
@@ -61,6 +63,7 @@ export function _StakeCard({ tabState, index, totalStaked, nextRewardAt, unstake
                     onClick={async e => {
                         if (typeof web3 !== 'undefined' && typeof ethereum !== 'undefined') {
                             if (ethereum.selectedAddress) {
+                                const network = GetNetwork(ethereum);
                                 const _web3 = new Web3(web3.currentProvider);
                                 const staking = ConfigureStakingContract(web3.currentProvider);
                                 const ohm = ConfigureOHMContract(web3.currentProvider);
@@ -69,11 +72,19 @@ export function _StakeCard({ tabState, index, totalStaked, nextRewardAt, unstake
                                 const multiplier = _web3.utils.toBN(10).pow(_web3.utils.toBN(9));
                                 const value = _web3.utils.toBN(input).mul(multiplier);
 
+                                let stakingAddress;
+                                if (network === 'Development') {
+                                    stakingAddress = contracts.Staking;
+                                }
+                                if (network === 'Testnet') {
+                                    stakingAddress = tcontracts.Staking;
+                                }
+
                                 if (tabState === 'stake') {
-                                    await ohm.methods.increaseAllowance(contracts.Staking, value).send({ from: ethereum.selectedAddress });
+                                    await ohm.methods.increaseAllowance(stakingAddress, value).send({ from: ethereum.selectedAddress });
                                     await staking.methods.stake(ethereum.selectedAddress, value, true, true).send({ from: ethereum.selectedAddress });
                                 } else {
-                                    await sohm.methods.increaseAllowance(contracts.Staking, value).send({ from: ethereum.selectedAddress });
+                                    await sohm.methods.increaseAllowance(stakingAddress, value).send({ from: ethereum.selectedAddress });
                                     await staking.methods.unstake(ethereum.selectedAddress, value, true, true).send({ from: ethereum.selectedAddress });
                                 }
                             }
