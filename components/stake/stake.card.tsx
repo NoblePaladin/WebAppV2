@@ -1,230 +1,133 @@
-import styled from 'styled-components';
-import { Primary, Card, CardDark, FontDark, FontMedium } from '../common/common.layout';
+import Web3 from 'web3';
+import { useState } from 'react';
+import { connect } from 'react-redux';
+import { StakeCardStyles } from './stake.card.styles';
+import { setTabState } from '../../redux/redux.staking';
+import { GetNetwork } from '../common/common.network';
+import { ConfigureStakingContract } from '../../web3/web3.contracts';
+import { ConfigureOHMContract, ConfigureSOHMContract } from '../../web3/web3.contracts';
+import contracts from '../../contracts.development.json';
+import tcontracts from '../../contracts.testnet.json';
 
-export const StakeCardStyles = styled.div`
-    background-color: ${Card};    
-    box-shadow: 0 0 15px 15px rgba(0, 0, 0, 0.05);
-    padding: 30px;
-    border-radius: 5px;
+export interface StakeCardI {
+    tabState: 'stake' | 'unstake';
+    index: number;
+    totalStaked: number;
+    nextRewardAt: number;
+    unstaked: number;
+    staked: number;
+    nextRewardFor: number;
 
-    width: calc(100% - 30px);
-    max-width: calc(768px - 30px);
-    margin: 15px;
+    setTabState(payload: 'stake' | 'unstake'): void;
+}
 
-    @media (max-width: 768px) {
-        padding: 30px 15px;
-    }
+declare const web3, ethereum;
 
-    h2 {
-        text-align: center;
-        font-weight: 24px;
-        font-weight: 500;
-        padding: 0 0 15px 0;
-    }
+export function _StakeCard({ tabState, index, totalStaked, nextRewardAt, unstaked, staked, nextRewardFor, setTabState }: StakeCardI) {
+    const [input, setInput] = useState('');
 
-    div.sub-heading {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        padding: 15px 15px 60px 15px;
-
-        div.sub-heading-column {
-            width: calc(100% / 3);
-            text-align: center;
-
-            h3 {
-                font-size: 18px;
-                font-weight: 300;
-                color: ${FontMedium};
-            }
-
-            p {
-                font-size: 24px;
-                font-weight: 600;
-            }
-
-            @media (max-width: 768px) {
-                width: 100%;
-                margin: 15px 0;
-            }
-        }
-    }
-
-    div.toggle-heading {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 0 30px 0;
-
-        a.toggle-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-
-            padding: 5px 0px;
-            margin: 0 7.5px;
-            font-size: 18px;
-            font-weight: 500;
-            width: 90px;
-            border-bottom: 2px solid transparent;
-
-            &.active {
-                color: ${Primary};
-                border-bottom: 2px solid ${Primary};
-            }
-        }
-    }
-
-    div.form {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        padding: 0 0 30px 0;
-
-        div.form-input {
-            position: relative;
-            border: 1px solid white;
-            border-radius: 5px;
-            width: calc(100% - 195px);
-            height: 40px;
-            margin: 0 15px 0 0;
-
-            @media (max-width: 768px) {
-                width: 100%;
-                margin: 0;
-            }
-
-            input {
-                width: 100%;
-                height: 100%;
-                background: transparent;
-                border: none;
-                outline: none;
-                color: white;
-                padding: 0 15px;
-                font-size: 18px;
-            }
-    
-            input[type=number]::-webkit-inner-spin-button, 
-            input[type=number]::-webkit-outer-spin-button {
-                opacity: 0;
-            }
-
-            a.max-button {
-                padding: 15px;
-                position: absolute;
-                top: 0;
-                right: 0;
-                height: 100%;
-                font-size: 18px;
-                cursor: pointer;
-    
-                display: flex;
-                align-items: center;
-            }
-        }
-
-        a.stake-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-    
-            background: ${Primary};
-            color: ${FontDark};
-            width: 180px;
-            height: 40px;
-            padding: 5px;
-            border-radius: 5px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-    
-            opacity: 0.75;
-            &:hover { opacity: 1; }
-
-            @media (max-width: 768px) {
-                width: 100%;
-                margin: 15px 0;
-            }
-        }
-    }
-
-    div.info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 5px 0;
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    div.line {
-        background: rgba(256, 256, 256, 0.1);
-        width: 100%;
-        height: 1px;
-        margin: 15px 0;
-    }
-`;
-
-export function StakeCard() {
     return(
         <StakeCardStyles>
             <h2>Stake with ETNA</h2>
             <div className="sub-heading">
                 <div className="sub-heading-column">
-                    <h3>APY</h3>
-                    <p>500%</p>
+                    <h3>Base Reward Rate</h3>
+                    <p>{nextRewardAt.toFixed(4)} sETNA</p>
                 </div>
                 <div className="sub-heading-column">
-                    <h3>Total Value Deposited</h3>
-                    <p>$0</p>
+                    <h3>Total Staked</h3>
+                    <p>{totalStaked.toLocaleString(undefined, { maximumFractionDigits: 0 })} sETNA</p>
                 </div>
                 <div className="sub-heading-column">
                     <h3>Current Index</h3>
-                    <p>44.6</p>
+                    <p>{index.toFixed(2)}</p>
                 </div>
             </div>
             <div className="toggle-heading">
-                <a className="toggle-button active">
+                <a className={`toggle-button ${tabState === 'stake' ? 'active' : ''}`} onClick={e => setTabState('stake')}>
                     Stake
                 </a>
-                <a className="toggle-button">
+                <a className={`toggle-button ${tabState === 'unstake' ? 'active' : ''}`} onClick={e => setTabState('unstake')}>
                     Unstake
                 </a>
             </div>
             <div className="form">
                 <div className="form-input">
-                    <input type="number" min={0}/>
+                    <input type="number" min={0} value={input} onChange={e => setInput(e.target.value)}/>
                     <a className="max-button">
                         Max
                     </a>
                 </div>
-                <a className="stake-button">
-                    Stake
+                <a
+                    className="stake-button"
+                    onClick={async e => {
+                        if (typeof web3 !== 'undefined' && typeof ethereum !== 'undefined') {
+                            if (ethereum.selectedAddress) {
+                                const network = GetNetwork(ethereum);
+                                const _web3 = new Web3(web3.currentProvider);
+                                const staking = ConfigureStakingContract(web3.currentProvider);
+                                const ohm = ConfigureOHMContract(web3.currentProvider);
+                                const sohm = ConfigureSOHMContract(web3.currentProvider);
+
+                                const multiplier = _web3.utils.toBN(10).pow(_web3.utils.toBN(9));
+                                const value = _web3.utils.toBN(input).mul(multiplier);
+
+                                let stakingAddress;
+                                if (network === 'Development') {
+                                    stakingAddress = contracts.Staking;
+                                }
+                                if (network === 'Testnet') {
+                                    stakingAddress = tcontracts.Staking;
+                                }
+
+                                if (tabState === 'stake') {
+                                    await ohm.methods.increaseAllowance(stakingAddress, value).send({ from: ethereum.selectedAddress });
+                                    await staking.methods.stake(ethereum.selectedAddress, value, true, true).send({ from: ethereum.selectedAddress });
+                                } else {
+                                    await sohm.methods.increaseAllowance(stakingAddress, value).send({ from: ethereum.selectedAddress });
+                                    await staking.methods.unstake(ethereum.selectedAddress, value, true, true).send({ from: ethereum.selectedAddress });
+                                }
+                            }
+                        }
+                    }}
+                >
+                    {tabState === 'stake' ? 'Stake' : 'Unstake'}
                 </a>
             </div>
             <div className="info-row">
                 <p>Unstaked Balance</p>
-                <p>0 ETNA</p>
+                <p>{(unstaked / Math.pow(10, 9)).toLocaleString(undefined, { minimumFractionDigits: 2 })} ETNA</p>
             </div>
             <div className="info-row">
                 <p>Staked Balance</p>
-                <p>0 sETNA</p>
+                <p>{(staked / Math.pow(10, 9)).toLocaleString(undefined, { minimumFractionDigits: 2 })} sETNA</p>
             </div>
             <div className="line"/>
             <div className="info-row">
                 <p>Next Reward Amount</p>
-                <p>0 sETNA</p>
+                <p>{(nextRewardFor / Math.pow(10, 9)).toLocaleString(undefined, { minimumFractionDigits: 2 })} sETNA</p>
             </div>
             <div className="info-row">
                 <p>Next Reward Yield</p>
-                <p>5%</p>
+                <p>{(nextRewardFor / staked).toLocaleString(undefined, { minimumFractionDigits: 2 })}%</p>
             </div>
             <div className="info-row">
-                <p>ROI (5 day rate)</p>
-                <p>250%</p>
+                <p>Net ROI</p>
+                <p>N/A%</p>
             </div>
         </StakeCardStyles>
     )
 }
+
+export const StakeCardState = state => ({
+    tabState: state.staking.tabState,
+    index: state.staking.index,
+    totalStaked: state.staking.totalStaked,
+    nextRewardAt: state.staking.nextRewardAt,
+    pending: state.staking.pending,
+    unstaked: state.staking.unstaked,
+    staked: state.staking.staked,
+    nextRewardFor: state.staking.nextRewardFor,
+})
+
+export const StakeCard = connect(StakeCardState, { setTabState })(_StakeCard);

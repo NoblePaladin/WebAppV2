@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useLayoutEffect } from "react";
 import { connect } from "react-redux";
+
 import { selectBond } from '../../redux/redux.bond';
 import Bonds from '../bonds';
 
@@ -8,6 +9,8 @@ export interface BondIDI {
     selectedBond: string;
     selectBond(payload: string): void;
 }
+
+declare const web3, ethereum;
 
 export function _BondID({ selectedBond, selectBond }: BondIDI) {
     const router = useRouter();
