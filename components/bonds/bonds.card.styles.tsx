@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Primary, Card, FontMedium } from '../common/common.layout';
+import { Primary, Card, FontMedium, FontDark } from '../common/common.layout';
 
 export const BondsCardStyles = styled.div`
     background-color: ${Card};    
@@ -22,10 +22,10 @@ export const BondsCardStyles = styled.div`
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        padding: 15px 15px 60px 15px;
+        padding: 15px 15px 15px 15px;
 
         div.sub-heading-column {
-            width: 50%;
+            width: calc(100% / 3);
             text-align: center;
 
             h3 {
@@ -124,6 +124,32 @@ export const BondsCardStyles = styled.div`
             @media (max-width: 768px) {
                 display: none;
             }
+        }
+    }
+
+    a.claim-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+
+        background: ${Primary};
+        color: ${FontDark};
+        width: calc(100% - 30px);
+        height: 40px;
+        padding: 5px;
+        margin: 15px 15px 30px 15px;
+        border-radius: 5px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+
+        opacity: 0.75;
+        &:hover { opacity: 1; }
+
+        @media (max-width: 768px) {
+            width: 100%;
+            margin: 15px 0;
         }
     }
 `;

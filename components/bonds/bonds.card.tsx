@@ -1,8 +1,9 @@
 import Link from 'next/link';
+import { useLayoutEffect } from 'react';
 import { connect } from 'react-redux';
 import { BondsCardStyles } from './bonds.card.styles';
 import { selectBond, TermsI } from '../../redux/redux.bond';
-
+import { ConfigureTellerContract } from '../../web3/web3.contracts';
 
 export interface BondsCardI {
     selectedBond: string;
@@ -13,9 +14,12 @@ export interface BondsCardI {
         1: TermsI;
         2: TermsI;
     };
+    pending: number;
 }
 
-export function _BondsCard({ selectedBond, selectBond, treasuryBalance, terms }: BondsCardI) {
+declare const web3, ethereum;
+
+export function _BondsCard({ selectedBond, selectBond, treasuryBalance, terms, pending }: BondsCardI) {
     function calculatePurchased(index: number) {
         return (terms[index].purchased / Math.pow(10, 18)).toLocaleString(undefined, { minimumFractionDigits: 2 });
     }
@@ -26,13 +30,36 @@ export function _BondsCard({ selectedBond, selectBond, treasuryBalance, terms }:
             <div className="sub-heading">
                 <div className="sub-heading-column">
                     <h3>Treasury Balance</h3>
-                    <p>${treasuryBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    <p>${treasuryBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                </div>
+                <div className="sub-heading-column">
+                    <h3>Unclaimed Bonds</h3>
+                    <p>{pending.toLocaleString(undefined, { minimumFractionDigits: 2 })} sETNA</p>
                 </div>
                 <div className="sub-heading-column">
                     <h3>ETNA Price</h3>
                     <p>$N/A</p>
                 </div>
             </div>
+            <a className="claim-button" onClick={async e => {
+                if (typeof web3 !== 'undefined' && typeof ethereum !== 'undefined') {
+                    if (ethereum.selectedAddress) {
+                        try {
+                            const teller = await ConfigureTellerContract(web3.currentProvider);
+                            await teller.methods.redeemAll(ethereum.selectedAddress).send({ from: ethereum.selectedAddress });
+
+                            /*
+                            const claim = await ConfigureStakingContract(web3.currentProvider);
+                            await claim.methods.rebase().send({ from: ethereum.selectedAddress });
+                            */
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    }
+                }
+            }}>
+                Redeem Unclaimed Bonds
+            </a>
             <div className="bond-row heading">
                 <div className="bond-column"/>
                 <div className="bond-column">Bond</div>
@@ -116,6 +143,7 @@ export const BondsCardState = state => ({
             available: state.bond.terms[2].available,
         },
     },
+    pending: state.staking.pending,
 });
 
 export const BondsCard = connect(BondsCardState, { selectBond })(_BondsCard);

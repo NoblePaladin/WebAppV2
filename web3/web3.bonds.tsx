@@ -1,5 +1,5 @@
 import { TermsI } from '../redux/redux.bond';
-import { ConfigureBondDepositoryContract, ConfigureTreasuryContract } from './web3.contracts';
+import { ConfigureBondDepositoryContract, ConfigureTreasuryContract, ConfigureTellerContract, ConfigureStakingContract } from './web3.contracts';
 
 export async function retrieveBondInfo(provider, index: number = 0): Promise<TermsI> {
     const depository = ConfigureBondDepositoryContract(provider);
@@ -30,4 +30,16 @@ export async function retrieveTreasuryBalance(provider) {
     const reserves = await treasury.methods.totalReserves().call();
 
     return reserves / Math.pow(10, 9);
+}
+
+export async function retrieveUnclaimedBonds(provider, address) {
+    const teller = ConfigureTellerContract(provider);
+    const pending = await teller.methods.totalPendingFor(address).call();
+
+    const staking = ConfigureStakingContract(provider);
+    const warmup = await staking.methods.contractBalance().call();
+
+    console.log('Warmup', warmup / Math.pow(10, 9));
+
+    return pending;
 }
